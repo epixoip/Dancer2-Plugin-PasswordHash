@@ -14,10 +14,10 @@ my $BCRYPT_ID = '2a';
 my $BCRYPT_COST = 13;
 my $BCRYPT_SALT_SZ = 16;
 
-plugin_keywords (
-    'password_hash',
-    'password_matches'
-);
+plugin_keywords qw/
+    password_hash
+    password_matches
+/;
 
 has format => (
     is          => 'ro',
@@ -30,7 +30,6 @@ has pepper => (
     from_config => 1,
     default     => sub { '' }
 );
-
 
 sub load_module {
     my ($mod_name, @import) = @_;
@@ -71,8 +70,8 @@ sub hmac_bcrypt {
         $BCRYPT_ID,
         (
             ! length $opts->{'cost_t'} ? $BCRYPT_COST
-            : $opts->{'cost_t'}  <   4 ?  4
-            : $opts->{'cost_t'}  >  31 ? 31
+            : $opts->{'cost_t'} <  4 ?  4
+            : $opts->{'cost_t'} > 31 ? 31
             : $opts->{'cost_t'}
         ),
         en_base64(urandom($BCRYPT_SALT_SZ))
@@ -86,19 +85,19 @@ sub hmac_bcrypt {
 sub password_hash {
     my ($plugin, $pass, $opts) = @_;
 
-    my $self = %{$plugin->config} || {};
+    my $self = $plugin->config || {};
 
     my $format = $opts->{'format'} || $plugin->format;
 
     my $cost_t = (
-          length $opts->{'cost_t'}          ? $opts->{'cost_t'}
-        : length $self->{$format}{'cost_t'} ? $self->{$format}{'cost_t'}
+          $opts->{'cost_t'}            ? $opts->{'cost_t'}
+        : $self->{$format}->{'cost_t'} ? $self->{$format}->{'cost_t'}
         : ''
     );
 
     my $cost_m = (
-          length $opts->{'cost_m'}               ? $opts->{'cost_m'}
-        : length $self->{'Pufferfish'}{'cost_m'} ? $self->{'Pufferfish'}{'cost_m'}
+          $opts->{'cost_m'}                 ? $opts->{'cost_m'}
+        : $self->{'Pufferfish'}->{'cost_m'} ? $self->{'Pufferfish'}->{'cost_m'}
         : ''
     );
     
